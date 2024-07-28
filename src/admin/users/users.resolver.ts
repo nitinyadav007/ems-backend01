@@ -1,13 +1,11 @@
 import {
   Args,
-  Context,
   Int,
   Mutation,
   Query,
   Resolver,
   Subscription,
 } from '@nestjs/graphql';
-import { UsersService } from './users.service';
 import { PaginatedUser, User } from '../entities/users.entity';
 import { ObjectId } from 'mongodb';
 import {
@@ -16,120 +14,238 @@ import {
   UpdateUserPasswordInput,
   UpdateUserPersonalInput,
 } from '../dto/users.dto';
-import { BaseStatus } from '../dto/common.dto';
+import {
+  BaseStatus,
+  DeleteFilter,
+  Ids,
+  UpdateBaseStatusInput,
+} from '../dto/common.dto';
 import { ObjectIdScalar } from '../../common/objectId.sclar';
 import { Inject, UseGuards } from '@nestjs/common';
-import { USERS_SERVICE } from '../../../ems-common/src/common/constant';
 import { ClientProxy } from '@nestjs/microservices';
-import { sendRequest } from '../../../ems-common/src/common/utils';
+import { IJwtPayload, sendRequest } from '../../../ems-common/src/common/utils';
 import { PUB_SUB } from '../../../ems-common/src/common/pubsub/pubsub.module';
 import { RedisPubSub } from 'graphql-redis-subscriptions';
+import { USERS_SERVICE } from '../../../ems-common/src/common/constant';
+import { CurrentUser } from '../../common/currrentuser';
+import { GraphQLJSON } from 'graphql-scalars';
 import { AuthGuard } from '../auth/auth.interceptor';
 
 @Resolver(() => User)
 export class UsersResolver {
   constructor(
-    private readonly usersService: UsersService,
     @Inject(USERS_SERVICE) private readonly userClient: ClientProxy,
     @Inject(PUB_SUB) private readonly pubSub: RedisPubSub,
   ) {}
 
-  @UseGuards(AuthGuard)
+  // @UseGuards(AuthGuard)
   @Mutation(() => User)
   async createUsers(
     @Args('createUsersInput') createUsersInput: CreateUserInput,
-    @Context('req') req: any,
+    // @CurrentUser() user: IJwtPayload,
   ) {
-    const newUser = await sendRequest<User, CreateUserInput>(
+    return await sendRequest<User, CreateUserInput>(
       'create',
       createUsersInput,
-      {
-        sub: '668d510e44f92225c514e983',
-        // @ts-ignore
-        type: 'admin',
-      },
+      null,
       'users',
       this.userClient,
     );
-    await this.pubSub.publish('userUpdated', {
-      userUpdated: newUser,
-    });
-    return newUser;
   }
 
-  @Query(() => PaginatedUser, { name: 'Users' })
+  @UseGuards(AuthGuard)
+  @Query(() => PaginatedUser, { name: 'users' })
   async findAll(
+    @CurrentUser() user: IJwtPayload,
     @Args('page', { type: () => Int, defaultValue: 1 }) page: number,
-    @Args('perPage', { type: () => Int, defaultValue: 10 }) pagePage: number,
+    @Args('perPage', { type: () => Int, defaultValue: 10 }) perPage: number,
     @Args('username', { type: () => String, nullable: true }) username: string,
+    @Args('delete', { type: () => DeleteFilter, nullable: true })
+    deleteFilter: DeleteFilter,
     @Args('ids', { type: () => [ObjectIdScalar], nullable: true })
     ids: [ObjectId],
     @Args('status', { type: () => BaseStatus, nullable: true })
     status: BaseStatus,
-  ): Promise<any> {
-    const result = sendRequest(
+    @Args('projection', { type: () => GraphQLJSON, nullable: true })
+    projection: Record<string, any>,
+    @Args('sortBy', { type: () => GraphQLJSON, nullable: true })
+    sortBy: Record<string, any>,
+  ): Promise<PaginatedUser> {
+    const result = await sendRequest<PaginatedUser, any>(
       'findAll',
       {
         page,
-        pagePage,
-        username,
+        perPage,
         ids,
+        deleteFilter,
+        username,
+        projection,
+        sortBy,
         status,
       },
-      null,
+      user,
       'users',
       this.userClient,
     );
     return result;
   }
 
-  @Query(() => User, { name: 'User' })
-  findOne(@Args('id', { type: () => String }) id: string) {
-    return this.usersService.findOne(id);
+  @UseGuards(AuthGuard)
+  @Query(() => User, { name: 'user' })
+  async findOne(
+    @Args('id', { type: () => String }) id: string,
+    @CurrentUser() user: IJwtPayload,
+  ) {
+    return await sendRequest<User, string>(
+      'findOne',
+      id,
+      user,
+      'users',
+      this.userClient,
+    );
   }
 
+  @UseGuards(AuthGuard)
   @Mutation(() => User)
-  updateUserPersonal(
+  async updateUserPersonal(
     @Args('updateUserPersonal')
     updateUserPersonalInput: UpdateUserPersonalInput,
+    @CurrentUser() user: IJwtPayload,
   ) {
-    return this.usersService.update(
-      updateUserPersonalInput.id,
+    return await sendRequest<User, UpdateUserPersonalInput>(
+      'update',
       updateUserPersonalInput,
+      user,
+      'users',
+      this.userClient,
     );
   }
 
-  @Mutation(() => User)
-  updateUserPassword(
+  @UseGuards(AuthGuard)
+  @Mutation(() => Boolean)
+  async updateUserPassword(
     @Args('updateUserPassword')
     updateUserPasswordInput: UpdateUserPasswordInput,
+    @CurrentUser() user: IJwtPayload,
   ) {
-    return this.usersService.update(
-      updateUserPasswordInput.id,
+    return sendRequest<boolean, UpdateUserPasswordInput>(
+      'updatePassword',
       updateUserPasswordInput,
+      user,
+      'users',
+      this.userClient,
     );
   }
 
+  @UseGuards(AuthGuard)
   @Mutation(() => User)
-  updateUserName(
+  async updateUserName(
+    @CurrentUser() user: IJwtPayload,
     @Args('updateUserName')
     updateUserNameInput: UpdateUserNameInput,
   ) {
-    return this.usersService.update(
-      updateUserNameInput.id,
+    return sendRequest<User, UpdateUserNameInput>(
+      'updateUsername',
       updateUserNameInput,
+      user,
+      'users',
+      this.userClient,
     );
   }
 
+  @UseGuards(AuthGuard)
   @Mutation(() => User)
-  removeUsers(@Args('id', { type: () => String }) id: string) {
-    return this.usersService.remove(id);
+  async updateStatus(
+    @CurrentUser() user: IJwtPayload,
+    @Args('updateUserStatus')
+    updateUserStatus: UpdateBaseStatusInput,
+  ) {
+    return await sendRequest<User, UpdateBaseStatusInput>(
+      'updateStatus',
+      updateUserStatus,
+      user,
+      'users',
+      this.userClient,
+    );
+  }
+
+  @UseGuards(AuthGuard)
+  @Mutation(() => Number)
+  async removeUsers(
+    @Args('ids', { type: () => [ObjectIdScalar] }) ids: ObjectId[],
+    @CurrentUser() user: IJwtPayload,
+  ) {
+    return sendRequest<number, ObjectId[]>(
+      'remove',
+      ids,
+      user,
+      'users',
+      this.userClient,
+    );
+  }
+
+  @UseGuards(AuthGuard)
+  @Mutation(() => Number)
+  async restoreUsers(
+    @Args('ids', { type: () => [ObjectIdScalar] }) ids: ObjectId[],
+    @CurrentUser() user: IJwtPayload,
+  ) {
+    return sendRequest<number, ObjectId[]>(
+      'restore',
+      ids,
+      user,
+      'users',
+      this.userClient,
+    );
   }
 
   @Subscription(() => User, {
-    name: 'userUpdated',
+    name: 'userCreated',
   })
-  userUpdated() {
-    return this.pubSub.asyncIterator('userUpdated');
+  userCreated() {
+    return this.pubSub.asyncIterator('userCreated');
+  }
+
+  @Subscription(() => User, {
+    name: 'userStatusUpdated',
+  })
+  userStatusUpdated() {
+    return this.pubSub.asyncIterator('userStatusUpdated');
+  }
+
+  @Subscription(() => Ids, {
+    name: 'userDeleted',
+    resolve: (payload) => payload.userDeleted.ids,
+  })
+  userDeleted() {
+    return this.pubSub.asyncIterator('userDeleted');
+  }
+
+  @Subscription(() => Ids, {
+    name: 'userRestore',
+  })
+  userRestore() {
+    return this.pubSub.asyncIterator('userRestore');
+  }
+
+  @Subscription(() => Boolean, {
+    name: 'userPasswordUpdated',
+  })
+  userPasswordUpdated() {
+    return this.pubSub.asyncIterator('userPasswordUpdated');
+  }
+
+  @Subscription(() => User, {
+    name: 'userNameUpdated',
+  })
+  userNameUpdated() {
+    return this.pubSub.asyncIterator('userNameUpdated');
+  }
+
+  @Subscription(() => User, {
+    name: 'userPersonalUpdated',
+  })
+  userPersonalUpdated() {
+    return this.pubSub.asyncIterator('userPersonalUpdated');
   }
 }

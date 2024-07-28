@@ -1,10 +1,13 @@
-import { Args, Context, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { AuthResponse, User } from '../entities/users.entity';
-import { Inject } from '@nestjs/common';
+import { Inject, UseGuards } from '@nestjs/common';
 import { AUTH_SERVICE } from '../../../ems-common/src/common/constant';
 import { ClientProxy } from '@nestjs/microservices';
 import { LoginUserInput } from '../dto/users.dto';
-import { sendRequest } from '../../../ems-common/src/common/utils';
+import { IJwtPayload, sendRequest } from '../../../ems-common/src/common/utils';
+import { ObjectId } from 'mongodb';
+import { AuthGuard } from './auth.interceptor';
+import { CurrentUser } from '../../common/currrentuser';
 
 @Resolver('Auth')
 export class AuthResolver {
@@ -23,12 +26,23 @@ export class AuthResolver {
     );
   }
 
+  @UseGuards(AuthGuard)
   @Query(() => User)
-  async getProfile(@Context('req') req: any): Promise<any> {
-    const user = req.user;
-    return await sendRequest(
+  async getProfile(@CurrentUser() user: IJwtPayload): Promise<User> {
+    return await sendRequest<User, ObjectId>(
       'findOne',
       user.sub,
+      null,
+      'auth',
+      this.authClient,
+    );
+  }
+
+  @Mutation(() => AuthResponse)
+  async refreshToken(@Args('refreshToken') refreshToken: string) {
+    return await sendRequest<AuthResponse, string>(
+      'refreshToken',
+      refreshToken,
       null,
       'auth',
       this.authClient,

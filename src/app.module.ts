@@ -13,9 +13,9 @@ import { ApolloServerPluginLandingPageLocalDefault } from '@apollo/server/plugin
 import { GlobalConfigModule } from '../ems-common/src/common/config/globalConfig.module';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import { ObjectIdScalar } from './common/objectId.sclar';
+import { RedisPubSubModule } from './common/test.model';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { AuthGuard } from './admin/auth/auth.interceptor';
-import { RedisPubSubModule } from './common/test.model';
 
 @Module({
   imports: [
@@ -58,6 +58,7 @@ import { RedisPubSubModule } from './common/test.model';
           onConnect: async (req: any) => {
             console.log(req.connectionParams.Authorization);
             if (req.connectionParams.Authorization) {
+              console.log('run when ');
               const headers = {
                 authorization: req.connectionParams.Authorization,
               };
@@ -90,9 +91,3 @@ import { RedisPubSubModule } from './common/test.model';
   ],
 })
 export class AppModule {}
-
-function checkAuth(request: any): string | undefined {
-  const [type, token] = request.headers.authorization?.split(' ') ?? [];
-  console.log('type', token);
-  return type === 'Bearer' ? token : undefined;
-}

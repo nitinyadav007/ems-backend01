@@ -30,10 +30,6 @@ export class User extends BaseSchema {
   personal: Personal;
   @Field(() => String)
   username: string;
-  @Field(() => String)
-  password: string;
-  @Field(() => String)
-  confirmPassword: string;
   @Field(() => BaseStatus)
   status: BaseStatus;
 }
@@ -58,19 +54,19 @@ export class Pagination {
   perPage: number;
   @Field(() => Int)
   page: number;
-  @Field(() => Boolean)
+  @Field(() => Boolean, { defaultValue: false })
   hasNextPage: boolean;
-  @Field(() => Boolean)
+  @Field(() => Boolean, { defaultValue: false })
   hasPrevPage: boolean;
-  @Field(() => Int)
+  @Field(() => Int, { nullable: true })
   nextPage: number;
-  @Field(() => Int)
+  @Field(() => Int, { defaultValue: 1 })
   pagingCounter: number;
-  @Field(() => Int)
+  @Field(() => Int, { nullable: true })
   prevPage: number;
   @Field(() => Int)
   totalDocs: number;
-  @Field(() => Int)
+  @Field(() => Int, { defaultValue: 1 })
   totalPages: number;
 }
 

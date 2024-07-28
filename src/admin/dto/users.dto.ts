@@ -70,3 +70,11 @@ export class LoginUserInput {
   @Field(() => String)
   password: string;
 }
+
+@InputType()
+export class UpdateBaseStatus {
+  @Field(() => String)
+  id: string;
+  @Field(() => BaseStatus)
+  status: BaseStatus;
+}
