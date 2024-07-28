@@ -1,0 +1,433 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+directive @upper on FIELD_DEFINITION
+
+type Address {
+  street: String!
+  city: String!
+  state: String!
+  pinCode: Float!
+  country: String!
+}
+
+type Ids {
+  ids: [ObjectId!]!
+}
+
+type Personal {
+  firstName: String!
+  lastName: String!
+  DOB: String!
+  profileImage: String!
+  coverImage: String!
+  gender: Gender!
+  email: [String!]!
+  phone: [String!]!
+  address: Address!
+}
+
+enum Gender {
+  male
+  female
+  others
+}
+
+type User {
+  id: String!
+  createdBy: ObjectId!
+  updatedBy: ObjectId!
+  deletedAt: DateTimeISO
+  createdAt: DateTimeISO
+  updatedAt: DateTimeISO
+  personal: Personal!
+  username: String!
+  status: BaseStatus!
+}
+
+"""
+A date-time string at UTC, such as 2007-12-03T10:15:30Z, compliant with the `date-time` format outlined in section 5.6 of the RFC 3339 profile of the ISO 8601 standard for representation of dates and times using the Gregorian calendar.This scalar is serialized to a string in ISO 8601 format and parsed from a string in ISO 8601 format.
+"""
+scalar DateTimeISO
+
+enum BaseStatus {
+  active
+  inactive
+}
+
+"""Pagination wrapper"""
+type Pagination {
+  perPage: Int!
+  page: Int!
+  hasNextPage: Boolean!
+  hasPrevPage: Boolean!
+  nextPage: Int
+  pagingCounter: Int!
+  prevPage: Int
+  totalDocs: Int!
+  totalPages: Int!
+}
+
+"""Pagination wrapper"""
+type PaginatedUser {
+  docs: [User!]!
+  paginate: Pagination!
+}
+
+type AuthResponse {
+  accessToken: String!
+  refreshToken: String!
+}
+
+type ExpenseAccount {
+  id: String!
+  createdBy: ObjectId!
+  updatedBy: ObjectId!
+  deletedAt: DateTimeISO
+  createdAt: DateTimeISO
+  updatedAt: DateTimeISO
+  type: String!
+  balance: Float!
+  description: String
+  status: BaseStatus!
+}
+
+"""Pagination wrapper"""
+type PaginatedExpenseAccount {
+  docs: [ExpenseAccount!]!
+  paginate: Pagination!
+}
+
+type ExpenseBudget {
+  id: String!
+  createdBy: ObjectId!
+  updatedBy: ObjectId!
+  deletedAt: DateTimeISO
+  createdAt: DateTimeISO
+  updatedAt: DateTimeISO
+  categoryId: ObjectId!
+  amount: Float!
+  startDate: String!
+  endDate: String!
+  status: BaseStatus!
+}
+
+"""Pagination wrapper"""
+type PaginatedExpenseBudget {
+  docs: [ExpenseBudget!]!
+  paginate: Pagination!
+}
+
+type ExpenseCategory {
+  id: String!
+  createdBy: ObjectId!
+  updatedBy: ObjectId!
+  deletedAt: DateTimeISO
+  createdAt: DateTimeISO
+  updatedAt: DateTimeISO
+  name: String!
+  description: String
+  status: BaseStatus!
+}
+
+"""Pagination wrapper"""
+type PaginatedExpenseCategory {
+  docs: [ExpenseCategory!]!
+  paginate: Pagination!
+}
+
+type ExpenseTransaction {
+  id: String!
+  createdBy: ObjectId!
+  updatedBy: ObjectId!
+  deletedAt: DateTimeISO
+  createdAt: DateTimeISO
+  updatedAt: DateTimeISO
+  accountId: ObjectId!
+  categoryId: ObjectId!
+  type: TransactionType!
+  amount: Float!
+  isAutoApplied: Boolean!
+  description: String
+  status: TransactionStatus!
+}
+
+enum TransactionType {
+  income
+  expense
+}
+
+enum TransactionStatus {
+  complete
+  fail
+  inProcess
+}
+
+"""Pagination wrapper"""
+type PaginatedExpenseTransaction {
+  docs: [ExpenseTransaction!]!
+  paginate: Pagination!
+}
+
+type ExpenseRecurring {
+  id: String!
+  createdBy: ObjectId!
+  updatedBy: ObjectId!
+  deletedAt: DateTimeISO
+  createdAt: DateTimeISO
+  updatedAt: DateTimeISO
+  categoryId: ObjectId!
+  accountId: ObjectId!
+  dateOrTime: String!
+  amount: Float!
+  repeatType: RepeatType!
+  status: BaseStatus!
+}
+
+enum RepeatType {
+  daily
+  weekly
+  monthly
+  yearly
+}
+
+"""Pagination wrapper"""
+type PaginatedExpenseRecurring {
+  docs: [ExpenseRecurring!]!
+  paginate: Pagination!
+}
+
+"""MongoDB ObjectId custom scalar type"""
+scalar ObjectId
+
+type Query {
+  expenseAccounts(page: Int! = 1, perPage: Int! = 10, delete: DeleteFilter, ids: [ObjectId!], status: BaseStatus, type: String, projection: JSON, sortBy: JSON): PaginatedExpenseAccount!
+  expenseAccount(id: String!): ExpenseAccount!
+  expenseBudgets(page: Int! = 1, perPage: Int! = 10, delete: DeleteFilter, ids: [ObjectId!], projection: JSON, sortBy: JSON, status: BaseStatus, categoryId: ObjectId): PaginatedExpenseBudget!
+  expenseBudget(id: String!): ExpenseBudget!
+  expenseCategories(page: Int! = 1, perPage: Int! = 10, delete: DeleteFilter, ids: [ObjectId!], projection: JSON, sortBy: JSON, status: BaseStatus, name: String): PaginatedExpenseCategory!
+  expenseCategory(id: String!): ExpenseCategory!
+  expenseRecurrings(page: Int! = 1, perPage: Int! = 10, delete: DeleteFilter, ids: [ObjectId!], projection: JSON, sortBy: JSON, status: BaseStatus, categoryId: ObjectId, accountId: ObjectId): PaginatedExpenseRecurring!
+  expenseRecurring(id: String!): ExpenseRecurring!
+  expenseTransactions(page: Int! = 1, perPage: Int! = 10, delete: DeleteFilter, ids: [ObjectId!], projection: JSON, sortBy: JSON, status: BaseStatus, categoryId: ObjectId, accountId: ObjectId, type: TransactionType): PaginatedExpenseTransaction!
+  expenseTransaction(id: String!): ExpenseTransaction!
+  getProfile: User!
+  users(page: Int! = 1, perPage: Int! = 10, username: String, delete: DeleteFilter, ids: [ObjectId!], status: BaseStatus, projection: JSON, sortBy: JSON): PaginatedUser!
+  user(id: String!): User!
+}
+
+enum DeleteFilter {
+  include
+  exclude
+  only
+}
+
+"""
+The `JSON` scalar type represents JSON values as specified by [ECMA-404](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf).
+"""
+scalar JSON @specifiedBy(url: "http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf")
+
+type Mutation {
+  createAccount(createExpenseAccountInput: CreateExpenseAccountInput!): ExpenseAccount!
+  updateAccount(updateExpenseAccountInput: UpdateExpenseAccountInput!): ExpenseAccount!
+  updateAccountStatus(updateExpenseAccountStatusInput: UpdateBaseStatusInput!): ExpenseAccount!
+  removeAccounts(ids: [ObjectId!]!): Float!
+  restoreAccounts(ids: [ObjectId!]!): Float!
+  createBudget(createExpenseBudgetInput: CreateExpenseBudgetInput!): ExpenseBudget!
+  updateBudget(updateExpenseBudgetInput: UpdateExpenseBudgetInput!): ExpenseBudget!
+  updateBudgetStatus(updateExpenseBudgetStatusInput: UpdateBaseStatusInput!): ExpenseBudget!
+  removeExpenseBudget(ids: [ObjectId!]!): Float!
+  restoreExpenseBudget(ids: [ObjectId!]!): Float!
+  createCategory(createExpenseCategoryInput: CreateExpenseCategoryInput!): ExpenseCategory!
+  updateCategory(updateExpenseCategoryInput: UpdateExpenseCategoryInput!): ExpenseCategory!
+  updateCategoryStatus(updateExpenseCategoryStatusInput: UpdateBaseStatusInput!): ExpenseCategory!
+  removeExpenseCategory(ids: [ObjectId!]!): Float!
+  restoreExpenseCategory(ids: [ObjectId!]!): Float!
+  createRecurring(createExpenseRecurringInput: CreateExpenseRecurringInput!): ExpenseRecurring!
+  updateRecurring(updateExpenseRecurringInput: UpdateExpenseRecurringInput!): ExpenseRecurring!
+  updateRecurringStatus(updateExpenseRecurringStatusInput: UpdateBaseStatusInput!): ExpenseRecurring!
+  removeExpenseRecurring(ids: [ObjectId!]!): Float!
+  restoreExpenseRecurring(ids: [ObjectId!]!): Float!
+  createTransaction(createExpenseTransactionInput: CreateExpenseTransactionInput!): ExpenseTransaction!
+  updateTransaction(updateExpenseTransactionInput: UpdateExpenseTransactionInput!): ExpenseTransaction!
+  updateTransactionStatus(updateExpenseTransactionStatusInput: UpdateExpenseTransactionStatusInput!): ExpenseTransaction!
+  removeExpenseTransaction(ids: [ObjectId!]!): Float!
+  restoreExpenseTransaction(ids: [ObjectId!]!): Float!
+  loginUser(loginUserInput: LoginUserInput!): AuthResponse!
+  refreshToken(refreshToken: String!): AuthResponse!
+  createUsers(createUsersInput: CreateUserInput!): User!
+  updateUserPersonal(updateUserPersonal: UpdateUserPersonalInput!): User!
+  updateUserPassword(updateUserPassword: UpdateUserPasswordInput!): Boolean!
+  updateUserName(updateUserName: UpdateUserNameInput!): User!
+  updateStatus(updateUserStatus: UpdateBaseStatusInput!): User!
+  removeUsers(ids: [ObjectId!]!): Float!
+  restoreUsers(ids: [ObjectId!]!): Float!
+}
+
+input CreateExpenseAccountInput {
+  type: String!
+  balance: Float!
+  description: String
+}
+
+input UpdateExpenseAccountInput {
+  id: String!
+  type: String!
+  balance: Float!
+  description: String
+}
+
+input UpdateBaseStatusInput {
+  id: ObjectId!
+  status: BaseStatus!
+}
+
+input CreateExpenseBudgetInput {
+  categoryId: ObjectId!
+  amount: Float!
+  startDate: String!
+}
+
+input UpdateExpenseBudgetInput {
+  id: String!
+  categoryId: ObjectId!
+  amount: Float!
+  startDate: String!
+}
+
+input CreateExpenseCategoryInput {
+  name: String!
+  description: String
+}
+
+input UpdateExpenseCategoryInput {
+  id: String!
+  name: String!
+  description: String
+}
+
+input CreateExpenseRecurringInput {
+  categoryId: ObjectId!
+  accountId: ObjectId!
+  dateOrTime: String!
+  amount: Float!
+  repeatType: RepeatType!
+}
+
+input UpdateExpenseRecurringInput {
+  id: String!
+  categoryId: ObjectId!
+  accountId: ObjectId!
+  dateOrTime: String!
+  amount: Float!
+  repeatType: RepeatType!
+}
+
+input CreateExpenseTransactionInput {
+  accountId: ObjectId!
+  categoryId: ObjectId!
+  type: TransactionType!
+  amount: Float!
+  isAutoApplied: Boolean!
+  description: String
+}
+
+input UpdateExpenseTransactionInput {
+  id: String!
+  accountId: ObjectId!
+  categoryId: ObjectId!
+  type: TransactionType!
+  amount: Float!
+  isAutoApplied: Boolean!
+  description: String
+}
+
+input UpdateExpenseTransactionStatusInput {
+  id: String!
+  status: TransactionStatus!
+}
+
+input LoginUserInput {
+  username: String!
+  password: String!
+}
+
+input CreateUserInput {
+  personal: PersonalInput!
+  username: String!
+  password: String!
+  confirmPassword: String!
+  status: BaseStatus!
+}
+
+input PersonalInput {
+  firstName: String!
+  lastName: String!
+  DOB: String!
+  profileImage: String!
+  coverImage: String!
+  gender: Gender!
+  email: [String!]!
+  phone: [String!]!
+  address: AddressInput!
+}
+
+input AddressInput {
+  street: String!
+  city: String!
+  state: String!
+  pinCode: Float!
+  country: String!
+}
+
+input UpdateUserPersonalInput {
+  id: String!
+  personal: PersonalInput!
+}
+
+input UpdateUserPasswordInput {
+  id: String!
+  password: String!
+  confirmPassword: String!
+}
+
+input UpdateUserNameInput {
+  id: String!
+  username: String!
+}
+
+type Subscription {
+  expenseAccountCreated: ExpenseAccount!
+  expenseAccountUpdated: ExpenseAccount!
+  expenseAccountStatusUpdated: ExpenseAccount!
+  expenseAccountsRemoved: Ids!
+  expenseAccountsRestore: Ids!
+  expenseBudgetCreated: ExpenseBudget!
+  expenseBudgetUpdated: ExpenseBudget!
+  expenseBudgetStatusUpdated: ExpenseBudget!
+  expenseBudgetsRemoved: Ids!
+  expenseBudgetsRestore: Ids!
+  expenseCategoryCreated: ExpenseCategory!
+  expenseCategoryUpdated: ExpenseCategory!
+  expenseCategoryStatusUpdated: ExpenseCategory!
+  expenseCategoriesRemoved: Ids!
+  expenseCategoriesRestored: Ids!
+  expenseRecurringCreated: ExpenseRecurring!
+  expenseRecurringUpdated: ExpenseRecurring!
+  expenseRecurringStatusUpdated: ExpenseRecurring!
+  expenseRecurringRemoved: Ids!
+  expenseRecurringRestored: Ids!
+  expenseTransactionCreated: ExpenseTransaction!
+  expenseTransactionUpdated: ExpenseTransaction!
+  expenseTransactionStatusUpdated: ExpenseTransaction!
+  expenseTransactionRemoved: Ids!
+  expenseTransactionRestored: Ids!
+  userCreated: User!
+  userStatusUpdated: User!
+  userDeleted: Ids!
+  userRestore: Ids!
+  userPasswordUpdated: Boolean!
+  userNameUpdated: User!
+  userPersonalUpdated: User!
+}
